@@ -1,5 +1,7 @@
 package br.com.desafio.infoglobo;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -12,6 +14,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.dom4j.DocumentException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+
+import com.google.gson.Gson;
 
 import br.com.desafio.infoglobo.model.Feed;
 import br.com.desafio.infoglobo.model.Item;
@@ -71,12 +75,31 @@ public class MainCrawler {
 			e.printStackTrace();
 		}
 		return feedObject;
-
+	}
+	
+	public static void convertToJSON(Feed feed) {
+		Gson gson = new Gson();
+	 
+		// converte objetos Java para JSON e retorna JSON como String
+		String json = gson.toJson(feed);
+	 
+		try {
+			//Escreve Json convertido em arquivo chamado "infoglobo.json"
+			FileWriter writer = new FileWriter("C://arqjson/infoglobo.json");
+			writer.write(json);
+			writer.close();
+	 
+		} catch (IOException e) {
+			e.printStackTrace();
+		}	 
+		System.out.println(json);
+	 
 	}
 
 	public static void main(String[] args) {
 		try {
-			System.out.print(leWebservice());
+			Feed feed = leWebservice();
+			convertToJSON(feed);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
