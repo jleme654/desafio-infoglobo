@@ -1,22 +1,85 @@
 package br.com.desafio.infoglobo;
 
-
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Iterator;
-import org.dom4j.Document;
+import java.net.URLConnection;
+import java.util.ArrayList;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+
+import br.com.desafio.infoglobo.model.Feed;
+import br.com.desafio.infoglobo.model.Item;
 
 public class MainCrawler {
+
+	private static Feed feedObject;
+	private static ArrayList<Item> itens;
+
+	public MainCrawler() {	}
+
+	private static Document parseXML(InputStream stream) throws Exception {
+		DocumentBuilderFactory objDocumentBuilderFactory = null;
+		DocumentBuilder objDocumentBuilder = null;
+		Document doc = null;
+		try {
+			objDocumentBuilderFactory = DocumentBuilderFactory.newInstance();
+			objDocumentBuilder = objDocumentBuilderFactory.newDocumentBuilder();
+
+			doc = objDocumentBuilder.parse(stream);
+		} catch (Exception ex) {
+			throw ex;
+		}
+
+		return doc;
+	}
+
+	public static Feed leWebservice() throws Exception {
+		feedObject = new Feed();
+		itens = new ArrayList<>();
+
+		try {
+			URL url = new URL("http://revistaautoesporte.globo.com/rss/ultimas/feed.xml");
+
+			URLConnection connection = url.openConnection();
+
+			Document doc = parseXML(connection.getInputStream());
 	
-	public static void leWebservice() {
-		
-		  URL url = new URL("http://revistaautoesporte.globo.com/rss/ultimas/feed.xml");
+			NodeList descNodes = doc.getElementsByTagName("title");
+			NodeList descNodes2 = doc.getElementsByTagName("link");
+			
+			for (int i = 0; i < descNodes.getLength(); i++) {
+				Item item = new Item();	
+				//System.out.println(descNodes.item(i).getTextContent());
+				//System.out.println("-------------------");
+				for (int j = 0; j < descNodes2.getLength(); j++) {
+					item.setTitle(descNodes.item(i).getTextContent());
+					item.setLink(descNodes2.item(j).getTextContent());
+					itens.add(item);
+				}
+			}
 
-          Document document = getDocumento(url);
+			if (null != itens && !itens.isEmpty())
+				feedObject.setItens(itens);
 
-          Element root = document.getRootElement();
+		} catch (MalformedURLException | DocumentException e) {
+			e.printStackTrace();
+		}
+		return feedObject;
+
+	}
+
+	public static void main(String[] args) {
+		try {
+			System.out.print(leWebservice());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }
